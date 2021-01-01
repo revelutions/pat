@@ -40,7 +40,7 @@ class Utilities:
 	              '50075':'Hadoop','50090':'Hadoop','60010':'Apache HBase','60030':'Apache HBase'}
 	
 	def get_application_service_name(self,port_number):
-		if(self.port_numbers.has_key(port_number)):
+		if(port_number in self.port_numbers):
 			return self.port_numbers[port_number]
 		
 		return 'Port Number ' + port_number
@@ -48,11 +48,11 @@ class Utilities:
 	
 	def print_color(self,text,color):
 		if color == 'red':
-			print self.red_color + text + self.end_color
+			print(self.red_color + text + self.end_color)
 		if color == 'blue':
-			print self.blue_color + text + self.end_color
+			print(self.blue_color + text + self.end_color)
 		if color == 'purple':
-			print self.purple_color + text + self.end_color
+			print(self.purple_color + text + self.end_color)
 	def extract_company_name(self,company_domain_name):
 		return company_domain_name.split('.')[0]		
 	
@@ -92,21 +92,21 @@ class Core:
 			self.utilities.print_color("[+] Report saved to: " + file_name,'purple')
 			self.utilities.print_color(self.utilities.seperator_double_line,'purple')
 			file_to_save.close()
-		except Exception,e:
+		except Exception as e:
 			self.utilities.print_color('[!] Error: Cannot save the results to a file!','red')
 
 	# Description: Open and execute Linux Terminal command
 	# Return: (string) return the results output after executing the command		
 	def _get_terminal_output(self,app_name,cmd):
 		banner = '[+] Executing ' + str(app_name) + '...\r\n'
-		print banner
+		print(banner)
 		output = ''
 	
 		try:
 			cmd = cmd.rstrip()
-			output += subprocess.check_output(cmd,shell=True,stderr=subprocess.STDOUT)
+			output += subprocess.check_output(cmd,shell=True,stderr=subprocess.STDOUT).decode()
 			output += '\r\n'
-		except Exception,e:
+		except Exception as e:
 			exception_message = str(e)
 			output += exception_message
 			# [Exit Status 1] message means that application exited with status 1, we don't need to raise it as a red flag
@@ -115,7 +115,7 @@ class Core:
 			output += '\r\n'
 		output +=  self.utilities.seperator_single_line + '\r\n'
 	
-		print output
+		print(output)
 		return banner + output
 	
 	# Description: Iterate each command then open and execute Linux Terminal command
@@ -123,7 +123,7 @@ class Core:
 	def _execute_commands(self,commands):
 		#Execute commands in terminal
 		results = ''
-		for key,val in commands.items():
+		for key,val in list(commands.items()):
 			output = self._get_terminal_output(val[0],val[1])
 			
 			if(self.current_test== 'livehosts'):
@@ -145,7 +145,7 @@ class Core:
 				webbrowser.open_new_tab(website)
 				# It's better to have a delay of 3 seconds between each new tab execution
 				time.sleep(3)
-			except Exception,e:
+			except Exception as e:
 				self.utilities.print_color('[!] cannot open the browser for the website: ' + website,'red')
 				
 	# Description: Vulnerabilities assessment of the machine hosts by executing the appropriate commands
@@ -157,7 +157,7 @@ class Core:
 		for port_number_item in ports_array:
 			port_number_split = port_number_item.split('/')
 			port_number = port_number_split[0]
-			if(commands.has_key(port_number)):
+			if(port_number in commands):
 				cmd = commands[port_number]
 				app_name = self.utilities.get_application_service_name(port_number)
 				output += self._get_terminal_output(app_name, cmd)
@@ -225,7 +225,7 @@ class Core:
 					else:
 						commands[counter] = [command_line_splitted[0],self._inject_parameter_in_file(command_line_splitted[1])]
 						counter += 1
-				except Exception,e:
+				except Exception as e:
 						self.utilities.print_color('[!] Error: The file ' + commands_file_path + ' is corrupted!','red')
 						self.utilities.print_color(str(e),'red')
 				
@@ -274,8 +274,8 @@ class Core:
 		#e.g report_file_name = 'dns_report.txt'
 		report_file_name = action_name + '_report.txt'
 		
-		print 'Pentesting the ' + category_name + '/' + action_name
-		print ''
+		print('Pentesting the ' + category_name + '/' + action_name)
+		print('')
 
 		self._start(commands,websites,report_folder_name,report_file_name)
 
@@ -286,51 +286,51 @@ class Main:
 	# Description: Print a help banner to show how to use the application and exit the application
 	# Return: (void)		
 	def _usage(self):
-		print 'Pentester Automation Tool'
-		print self.utilities.seperator_single_line
-		print 'Arguments:'
-		print '-c\t --company\t Your Client Company Domain Name'
-		print 
-		print "-dns\t --dns_test\t Check/Test the DNS security"
-		print 
-		print "-emails\t --emails_test\t Look for email addresses"
-		print 
-		print "-whois\t --whois_test\t Check/Test the WHOIS data"
-		print
-		print "-files\t --files_test\t Look for files"
-		print
-		print "-socialmedia\t --socialmedia_test\t Search in the social media"
-		print
-		print "-websearch\t --websearch_test\t Web browser search"
-		print
-		print "-ip\t --ip_address\t pecify the IP address / Range"
-		print
-		print "-livehosts\t --livehosts_test\t Scan for live hosts"
-		print
-		print "-portscan\t --portscan_test\t Port Scanning"
-		print
-		print "-vulns\t --vulns_test\t Vulnerabilities Assessment"
-		print
-		print "-bruteforce\t --bruteforce_test\t Brute-Forcing Application ports"
-		print
-		print "-waf\t --waf_test\t Web Application Firewall Scanning"
-		print		
-		print "-ssl\t --ssl_test\t SSL/TLS Scanning"
-		print
-		print "-loadbalance\t --loadbalance_test\t Load Balancer Scanning"
-		print
-		print "-webvulns\t --webvulns_test\t Web Vulnerabilities Scanning"		
-		print
-		print
-		print "Example: DNS and files"
-		print "pat.py --company yourclientdomain.com -dns -files"
-		print
-		print "Example: Live Hosts Scanning"
-		print "pat.py -c yourclientdomain.com -ip 10.0.0.1/24 -livehosts"
-		print	
-		print "Example: Web Scanning"
-		print "pat.py -c yourclientdomain.com -u www.google.com -ssl -waf -loadbalance -webvulns"
-		print			
+		print('Pentester Automation Tool')
+		print(self.utilities.seperator_single_line)
+		print('Arguments:')
+		print('-c\t --company\t Your Client Company Domain Name')
+		print() 
+		print("-dns\t --dns_test\t Check/Test the DNS security")
+		print() 
+		print("-emails\t --emails_test\t Look for email addresses")
+		print() 
+		print("-whois\t --whois_test\t Check/Test the WHOIS data")
+		print()
+		print("-files\t --files_test\t Look for files")
+		print()
+		print("-socialmedia\t --socialmedia_test\t Search in the social media")
+		print()
+		print("-websearch\t --websearch_test\t Web browser search")
+		print()
+		print("-ip\t --ip_address\t pecify the IP address / Range")
+		print()
+		print("-livehosts\t --livehosts_test\t Scan for live hosts")
+		print()
+		print("-portscan\t --portscan_test\t Port Scanning")
+		print()
+		print("-vulns\t --vulns_test\t Vulnerabilities Assessment")
+		print()
+		print("-bruteforce\t --bruteforce_test\t Brute-Forcing Application ports")
+		print()
+		print("-waf\t --waf_test\t Web Application Firewall Scanning")
+		print()		
+		print("-ssl\t --ssl_test\t SSL/TLS Scanning")
+		print()
+		print("-loadbalance\t --loadbalance_test\t Load Balancer Scanning")
+		print()
+		print("-webvulns\t --webvulns_test\t Web Vulnerabilities Scanning")		
+		print()
+		print()
+		print("Example: DNS and files")
+		print("pat.py --company yourclientdomain.com -dns -files")
+		print()
+		print("Example: Live Hosts Scanning")
+		print("pat.py -c yourclientdomain.com -ip 10.0.0.1/24 -livehosts")
+		print()	
+		print("Example: Web Scanning")
+		print("pat.py -c yourclientdomain.com -u www.google.com -ssl -waf -loadbalance -webvulns")
+		print()			
 		#exit the application
 		exit(0)		
 		
@@ -338,9 +338,9 @@ class Main:
 	# Return: (void)		
 	def _print_banner(self,company_domain_name):
 		# Print Banner
-		print 'Pentesting Client Domain Name: ' + company_domain_name
-		print self.utilities.seperator_single_line
-		print		
+		print('Pentesting Client Domain Name: ' + company_domain_name)
+		print(self.utilities.seperator_single_line)
+		print()		
 	
 	
 	# Description: Gets a list of IP addresses that comes from the input terminal
@@ -462,7 +462,7 @@ class Main:
 			for ip_item in LIVE_HOSTS:
 				core.pen_test(attack_type,self.utilities.attack_category,ip_item)
 		else:
-			print '[!] Nothing to attack'			
+			print('[!] Nothing to attack')			
 	
 	#Description: Port Scan Live Hosts
 	#Return: (void)
@@ -472,7 +472,7 @@ class Main:
 			for ip_item in LIVE_HOSTS:
 				core.pen_test('portscan',self.utilities.internal_scanning_category,ip_item)
 		else:
-			print '[!] No hosts found to scan'		
+			print('[!] No hosts found to scan')		
 	
 	# Description: Initialize the terminal arguments
 	# Return: (void)	
@@ -520,10 +520,10 @@ class Main:
 			self._process_arguments(args)
 			
 		except KeyboardInterrupt:
-			print "Exiting Application ..."
+			print("Exiting Application ...")
 			exit(0)
-		except Exception,e:
-			print str(e)
+		except Exception as e:
+			print(str(e))
 			exit(0)
 
 if __name__ == '__main__':
